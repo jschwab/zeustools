@@ -406,7 +406,7 @@ class ZeusMPInput:
                 opt_lines = []
                 for option, value in optdict.iteritems():
                 
-                    if value:
+                    if value != None:
                         opt_lines.append("   {0:10} = {1:22}".format(option, _fmt_value(value)))
 
                 zmpfile.write("&{}\n{}/\n".format(namelist, ",\n".join(opt_lines)))
