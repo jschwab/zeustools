@@ -405,8 +405,8 @@ class ZeusMPInput:
                 return str(val)
 
 
-        opt_fmt = "   {0:10} = {1:22}"
-        nml_fmt = "&{}\n{}/\n"
+        opt_fmt = "     {0:10} = {1:22}"
+        nml_fmt = " &{}\n{}/\n"
 
         # get zmp file for writing
         with open(os.path.join(rootdir, "exe90/zmp_inp"), "w") as zmpfile:
