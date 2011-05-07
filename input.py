@@ -15,7 +15,7 @@ class ZeusMPInput:
     ("physconf",  OrderedDict([
          ("lrad"     , 0    ),
          ("leos"     , 1    ),
-         ("nspec"    , 1    ),
+         ("nspec"    , None ),
          ("xhydro"   , True ),
          ("xforce"   , True ),
          ("xmhd"     , False), 
@@ -60,7 +60,7 @@ class ZeusMPInput:
          ("nlim",   100000), 
          ("tlim",   0.0   ), 
          ("cpulim", 100000.0), 
-         ("mbatch", 0)         ])),
+         ("mbatch", 1)         ])),
 
     ("hycon"    , OrderedDict([
          ("qcon"   , 2.0),
@@ -175,35 +175,11 @@ class ZeusMPInput:
          ("foks(12)" , None) ,
          ("foks(13)" , None) ])),
 
-    ("ggen1"    , OrderedDict([
-          ("nbl"    , 8),
-          ("x1min"  , 0.0),
-          ("x1max"  , 1.0),
-          ("igrid"  , 1),
-          ("x1rat"  , 1.0),
-          ("dx1min" , 1.0),
-          ("lgrid"  , True)   ])),
+    ("ggen1"    , []  ),
 
+    ("ggen2"    , []  ),
 
-    ("ggen2"    , OrderedDict([
-          ("nbl"    , 8),
-          ("x2min"  , 0.0),
-          ("x2max"  , 1.0),
-          ("igrid"  , 1),
-          ("x2rat"  , 1.0),
-          ("dx2min" , 1.0),
-          ("lgrid"  , True)   ])),
-
-
-    ("ggen3"    , OrderedDict([
-          ("nbl"    , 8),
-          ("x3min"  , 0.0),
-          ("x3max"  , 1.0),
-          ("igrid"  , 1),
-          ("x3rat"  , 1.0),
-          ("dx3min" , 1.0),
-          ("lgrid"  , True)   ])),
-
+    ("ggen3"    , []  ),
 
     ("grvcon"   , OrderedDict([
          ("guniv"  ,None),   
@@ -235,8 +211,8 @@ class ZeusMPInput:
         ("rmfp0",       None) ])),
 
     ("eqos"     , OrderedDict([
-         ("gamma" , 1),
-         ("mmw"   , 1)        ])),
+         ("gamma" , 5.0/3.0),
+         ("mmw"   , None)        ])),
 
     ("pgen"     , OrderedDict([
                               ])),
@@ -245,10 +221,10 @@ class ZeusMPInput:
                               ])),
 
     ("iocon"    , OrderedDict([
-         ("tusr",1.0), 
-         ("dtusr",1.0),
-         ("thdf",0.0),
-         ("dthdf",0.005e0)    ]))
+         ("tusr",  0.0), 
+         ("dtusr", 1.0),
+         ("thdf",  0.0),
+         ("dthdf", 1.0)    ]))
 
     ])  
 
@@ -286,7 +262,7 @@ class ZeusMPInput:
         self.set_value("arrayconf", "izones", izones)
         self.set_value("arrayconf", "jzones", jzones)
         self.set_value("arrayconf", "kzones", kzones)
-        self.set_value("arrayconf", "izones", max([izones, jzones, kzones]))
+        self.set_value("arrayconf", "maxijk", max([izones, jzones, kzones]))
         return
 
     def set_ntiles(self, itiles = 1, jtiles = 1, ktiles = 1):
@@ -333,12 +309,12 @@ class ZeusMPInput:
         """
 
         # set the appropriate boundary flags
-        if iis: self.set_value("iib" , "niis(1)" , iis)
-        if ois: self.set_value("oib" , "nois(1)" , ois)
-        if ijs: self.set_value("ijb" , "nijs(1)" , ijs)
-        if ojs: self.set_value("ojb" , "nojs(1)" , ojs)
-        if iks: self.set_value("ikb" , "niks(1)" , iks)
-        if oks: self.set_value("okb" , "noks(1)" , oks)
+        if iis!=None: self.set_value("iib" , "niis(1)" , iis)
+        if ois!=None: self.set_value("oib" , "nois(1)" , ois)
+        if ijs!=None: self.set_value("ijb" , "nijs(1)" , ijs)
+        if ojs!=None: self.set_value("ojb" , "nojs(1)" , ojs)
+        if iks!=None: self.set_value("ikb" , "niks(1)" , iks)
+        if oks!=None: self.set_value("okb" , "noks(1)" , oks)
         
         # ensure that the appropriate MPI periodicities are set
         if ( (iis == 4) or (ois == 4) ):
@@ -373,14 +349,45 @@ class ZeusMPInput:
         """
 
         # set the appropriate boundary flags
-        if iis: self.set_value("iib" , "niis(3)" , iis)
-        if ois: self.set_value("oib" , "nois(3)" , ois)
-        if ijs: self.set_value("ijb" , "nijs(3)" , ijs)
-        if ojs: self.set_value("ojb" , "nojs(3)" , ojs)
-        if iks: self.set_value("ikb" , "niks(3)" , iks)
-        if oks: self.set_value("okb" , "noks(3)" , oks)
+        if iis!=None: self.set_value("iib" , "niis(3)" , iis)
+        if ois!=None: self.set_value("oib" , "nois(3)" , ois)
+        if ijs!=None: self.set_value("ijb" , "nijs(3)" , ijs)
+        if ojs!=None: self.set_value("ojb" , "nojs(3)" , ojs)
+        if iks!=None: self.set_value("ikb" , "niks(3)" , iks)
+        if oks!=None: self.set_value("okb" , "noks(3)" , oks)
 
         return
+
+
+    def set_limits(self, nlim = 1000000, tlim = 1.0, cpulim = 3600.0):
+        self.set_value("pcon", "nlim", nlim)
+        self.set_value("pcon", "tlim", tlim)
+        self.set_value("pcon", "cpulim", cpulim)
+
+        return
+
+    def add_grid(self, axis, nbl = 8, xmin = 0.0, xmax = 1.0, igrid = 1, xrat = None, dxmin = None):
+        """Add a grid to the list of ggen# grids"""
+        
+        s_strs = ["ggen{}", "x{}min", "x{}max", "x{}rat", "dx{}min"]
+        s_axis, s_min, s_max, s_rat, s_dmin = [s.format(axis) for s in s_strs]
+
+        for grid in self._namelists[s_axis]:
+            grid["lgrid"] = False
+
+        self._namelists[s_axis].append(
+            OrderedDict([
+                 ("nbl"   , nbl),
+                 (s_min   , xmin),
+                 (s_max   , xmax),
+                 ("igrid" , igrid),
+                 (s_rat   , xrat),
+                 (s_dmin  , dxmin),
+                 ("lgrid" , True)   ])      )
+
+        return
+
+
 
     def write(self, rootdir = "./"):
 
@@ -397,6 +404,10 @@ class ZeusMPInput:
             else:
                 return str(val)
 
+
+        opt_fmt = "   {0:10} = {1:22}"
+        nml_fmt = "&{}\n{}/\n"
+
         # get zmp file for writing
         with open(os.path.join(rootdir, "exe90/zmp_inp"), "w") as zmpfile:
             zmpfile.write(" #### ZEUSMP2 ZMP_INP AUTOGENERATED BY ZEUSTOOLS #### \n")                       
@@ -404,12 +415,20 @@ class ZeusMPInput:
             for namelist, optdict in self._namelists.iteritems():
 
                 opt_lines = []
-                for option, value in optdict.iteritems():
-                
-                    if value != None:
-                        opt_lines.append("   {0:10} = {1:22}".format(option, _fmt_value(value)))
 
-                zmpfile.write("&{}\n{}/\n".format(namelist, ",\n".join(opt_lines)))
+                if namelist in ["ggen1", "ggen2", "ggen3"]:
+                    for grid in optdict:
+                        for option, value in grid.iteritems():
+                            if value != None:
+                                opt_lines.append(opt_fmt.format(option, _fmt_value(value)))
+
+                else:
+                    for option, value in optdict.iteritems():
+                        if value != None:
+                            opt_lines.append(opt_fmt.format(option, _fmt_value(value)))
+
+
+                zmpfile.write(nml_fmt.format(namelist, ",\n".join(opt_lines)))
             
 
 
