@@ -257,6 +257,10 @@ class ZeusMPInput:
         if ldimen: self.set_value("geomconf" , "ldimen" , ldimen)
         return
 
+    def set_eos(self, leos = 1):
+        self.set_value("physconf", "leos", leos)
+        return
+
     def set_nzones(self, izones = 1, jzones = 1, kzones = 1):
         """Set number of zones on each tile"""
         self.set_value("arrayconf", "izones", izones)
