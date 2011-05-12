@@ -3,26 +3,99 @@ import h5py
 import numpy as np
 import os
 
+# define map to the HDF5 datasets
+datanames = {"t" : "   time",
+             "x1": "i coord",
+             "x2": "j coord",
+             "x3": "k coord",
+             "v1": " i velocity", 
+             "v2": " j velocity", 
+             "v3": " k velocity", 
+             "e":  " gas energy",
+             "d":  "gas density",
+             "T":  "temperature"}
+
+
 # define a norm function
-    
+
+def array_compare(array1, array2):
+    ac = {}
+    adiff = abs(array1 - array2)
+    ac['max'] = adiff.max()
+    ac['avg'] = adiff.mean()
+    return ac
+
+def compare_one():
+    pass
+
+def compare_two(output1, output2):
+
+    print(output1.files)
+    print(output2.files)
+
+    for (file1, file2) in zip(output1.files, output2.files):
+        
+        print("Comparing {} with {}".format(file1, file2))
+
+        f1 = ZeusMPHDF5(file1) 
+        f2 = ZeusMPHDF5(file2) 
+
+        # check that time stamps are the same
+        t1 = f1.get_dset("t")
+        t2 = f2.get_dset("t")
+        if np.array_equal(t1,t2):
+            print("Time matches")
+        else:
+            print("Timestamps do not match, {} != {}".format(t1,t2))
+
+
+        # check that coordinates are the same
+        for axis in ['x1','x2','x3']:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            if np.array_equal(c1,c2):
+                print("{} matches".format(axis))
+            else:
+                print("{} does not match".format(axis))
+
+
+        # check that velocities are the same
+        for axis in ['v1','v2','v3']:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            if np.array_equal(c1,c2):
+                print("{} matches".format(axis))
+            else:
+                print("{} does not match {}".format(axis, np.abs(c1-c2)))
+
+
+        # check that physical variables are the same
+        for axis in ["e","d"]:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            if np.array_equal(c1,c2):
+                print("{} matches".format(axis))
+            else:
+                print("{} does not match".format(axis))
+
+
+    return
+
+class ZeusMPHDF5:
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.file = h5py.File(filename)
+             
+    def get_dset(self, name):
+        return self.file[datanames[name]][:]
 
 
 class ZeusMPOutput:
 
     def __init__(self, datadir = "./"):
         self.datadir = datadir
-        self.hdf5_files = glob.glob(os.path.join(datadir, "hdfaa.*"))
-        
-        self.times = []
-        for hfile in self.hdf5_files:
-            with h5py.File(hfile) as h:
-                print(h.items())
-                self.times.append(h['   time'][0])
-        self.times = np.array(self.times, dtype = "float64")
+        self.files = glob.glob(os.path.join(datadir, "hdfaa.*"))
 
-    def compare(self, anotherZMPOutput):
-        pass
 
-    def showtimes(self):
-        return self.times
 
