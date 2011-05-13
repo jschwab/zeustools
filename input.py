@@ -370,6 +370,17 @@ class ZeusMPInput:
 
         return
 
+    def set_grvcon(self, guniv = None, ptmass = None, xptm = (0.0, 0.0, 0.0)):
+        if guniv!=None: self.set_value("grvcon", "guniv", guniv)
+        if ptmass!=None:
+            self.set_value("grvcon", "ptmass", ptmass)
+            self.set_value("grvcon", "x1ptm", xptm[0])
+            self.set_value("grvcon", "x2ptm", xptm[1])
+            self.set_value("grvcon", "x3ptm", xptm[2])
+            self.set_value("physconf", "xptmass", True)
+
+        return
+
     def add_grid(self, axis, nbl = 8, xmin = 0.0, xmax = 1.0, igrid = 1, xrat = None, dxmin = None):
         """Add a grid to the list of ggen# grids"""
         
@@ -392,6 +403,10 @@ class ZeusMPInput:
         return
 
 
+    def set_pgen(self, pdict):
+        for k, v in pdict.iteritems():
+            self.set_value("pgen", k, v)
+        return
 
     def write(self, rootdir = "./"):
 
