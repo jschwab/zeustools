@@ -15,6 +15,7 @@ datanames = {"t" : "   time",
              "d":  "gas density",
              "T":  "temperature"}
 
+err_fmt = "{:2s} does not match at ({:4d},{:4d},{:4d})  |  diff = {:18.12E}"
 
 # define a norm function
 
@@ -28,10 +29,10 @@ def array_compare(array1, array2):
 def compare_one():
     pass
 
-def compare_two(output1, output2):
+def on_tile_boundary(i,j,k):
+    return (i == 63)
 
-    print(output1.files)
-    print(output2.files)
+def compare_two(output1, output2):
 
     for (file1, file2) in zip(output1.files, output2.files):
         
@@ -58,7 +59,6 @@ def compare_two(output1, output2):
             else:
                 print("{} does not match".format(axis))
 
-
         # check that velocities are the same
         for axis in ['v1','v2','v3']:
             c1 = f1.get_dset(axis)
@@ -66,8 +66,11 @@ def compare_two(output1, output2):
             if np.array_equal(c1,c2):
                 print("{} matches".format(axis))
             else:
-                print("{} does not match {}".format(axis, np.abs(c1-c2)))
-
+                diff  =  np.abs(c1-c2)
+                nz = diff.nonzero()
+                for (k,j,i) in zip(*nz):
+                    if not on_tile_boundary(i,j,k):
+                        print(err_fmt.format(axis,i,j,k, diff[k,j,i]))
 
         # check that physical variables are the same
         for axis in ["e","d"]:
@@ -76,8 +79,10 @@ def compare_two(output1, output2):
             if np.array_equal(c1,c2):
                 print("{} matches".format(axis))
             else:
-                print("{} does not match".format(axis))
-
+                diff  =  np.abs(c1-c2)
+                nz = diff.nonzero()
+                for (k,j,i) in zip(*nz):
+                    print(err_fmt.format(axis,i,j,k, diff[k,j,i]))
 
     return
 

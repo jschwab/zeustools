@@ -433,21 +433,26 @@ class ZeusMPInput:
 
             for namelist, optdict in self._namelists.iteritems():
 
-                opt_lines = []
+
 
                 if namelist in ["ggen1", "ggen2", "ggen3"]:
                     for grid in optdict:
+                        opt_lines = []
                         for option, value in grid.iteritems():
                             if value != None:
                                 opt_lines.append(opt_fmt.format(option, _fmt_value(value)))
 
+                        zmpfile.write(nml_fmt.format(namelist, ",\n".join(opt_lines)))
+
                 else:
+
+                    opt_lines = []
                     for option, value in optdict.iteritems():
                         if value != None:
                             opt_lines.append(opt_fmt.format(option, _fmt_value(value)))
 
 
-                zmpfile.write(nml_fmt.format(namelist, ",\n".join(opt_lines)))
+                    zmpfile.write(nml_fmt.format(namelist, ",\n".join(opt_lines)))
             
 
 
