@@ -30,7 +30,15 @@ def compare_one():
     pass
 
 def on_tile_boundary(i,j,k):
-    return (i == 63)
+    return (i == 63) or (j == 43)
+
+def close(a,b):
+    t1 = np.allclose(a,b,rtol = 1e-9)
+    t2 = np.allclose(b,a,rtol = 1e-9)
+    return (t1 and t2)
+
+#def close(a,b):
+#    return np.array_equal(a,b)
 
 def compare_two(output1, output2):
 
@@ -44,7 +52,7 @@ def compare_two(output1, output2):
         # check that time stamps are the same
         t1 = f1.get_dset("t")
         t2 = f2.get_dset("t")
-        if np.array_equal(t1,t2):
+        if close(t1,t2):
             print("Time matches")
         else:
             print("Timestamps do not match, {} != {}".format(t1,t2))
@@ -54,7 +62,7 @@ def compare_two(output1, output2):
         for axis in ['x1','x2','x3']:
             c1 = f1.get_dset(axis)
             c2 = f2.get_dset(axis)
-            if np.array_equal(c1,c2):
+            if close(c1,c2):
                 print("{} matches".format(axis))
             else:
                 print("{} does not match".format(axis))
@@ -63,20 +71,20 @@ def compare_two(output1, output2):
         for axis in ['v1','v2','v3']:
             c1 = f1.get_dset(axis)
             c2 = f2.get_dset(axis)
-            if np.array_equal(c1,c2):
+            if close(c1,c2):
                 print("{} matches".format(axis))
             else:
                 diff  =  np.abs(c1-c2)
                 nz = diff.nonzero()
                 for (k,j,i) in zip(*nz):
                     if not on_tile_boundary(i,j,k):
-                        print(err_fmt.format(axis,i,j,k, diff[k,j,i]))
+                        print(err_fmt.format(axis,i,j,k, diff[k,j,i]/ (c1[k,j,i] + c1[k,j,i])))
 
         # check that physical variables are the same
         for axis in ["e","d"]:
             c1 = f1.get_dset(axis)
             c2 = f2.get_dset(axis)
-            if np.array_equal(c1,c2):
+            if close(c1,c2):
                 print("{} matches".format(axis))
             else:
                 diff  =  np.abs(c1-c2)
