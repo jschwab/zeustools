@@ -3,6 +3,27 @@ import h5py
 import numpy as np
 import os
 
+class Error(Exception):
+    pass
+
+class ComparisonError(Error):
+
+   def __init__(self, var, value1, value2):
+       self.var = var
+       self.value1 = value1
+       self.value2 = value2
+
+class DifferenceError(Error):
+
+   def __init__(self, var, diff, locs):
+       self.var = var
+       self.diff = diff
+       self.locs = locs
+
+
+
+
+
 # define map to the HDF5 datasets
 datanames = {"t" : "   time",
              "x1": "i coord",
@@ -32,15 +53,30 @@ def compare_one():
 def on_tile_boundary(i,j,k):
     return (i == 63) or (j == 43)
 
-def close(a,b):
-    t1 = np.allclose(a,b,rtol = 1e-9)
-    t2 = np.allclose(b,a,rtol = 1e-9)
-    return (t1 and t2)
+def assert_near_equality(a,b):
 
-#def close(a,b):
-#    return np.array_equal(a,b)
+    t1 = np.allclose(a,b,rtol = 1e-9, atol = 0)
+    t2 = np.allclose(b,a,rtol = 1e-9, atol = 0)
+    
+    if not (t1 and t2):
+        diff  =  np.abs(a-b)
+        locs = diff.nonzero()
+        raise DifferenceError(None, diff[locs], locs)
+        
+    return
 
-def compare_two(output1, output2):
+def assert_equality(a,b):
+
+    if not np.array_equal(a,b):
+        diff  =  np.abs(a-b)
+        locs = diff.nonzero()
+        raise DifferenceError(None, diff[locs], locs)
+        
+    return
+                    
+def compare_two(output1, output2, unforgiving = True):
+
+    nomatch_msg = "  Files do not match: {:} differs"
 
     for (file1, file2) in zip(output1.files, output2.files):
         
@@ -49,48 +85,79 @@ def compare_two(output1, output2):
         f1 = ZeusMPHDF5(file1) 
         f2 = ZeusMPHDF5(file2) 
 
-        # check that time stamps are the same
-        t1 = f1.get_dset("t")
-        t2 = f2.get_dset("t")
-        if close(t1,t2):
-            print("Time matches")
-        else:
-            print("Timestamps do not match, {} != {}".format(t1,t2))
+        try: # try to compare the files
+
+            # check that time stamps are the same
+            t1 = f1.get_dset("t")[0]
+            t2 = f2.get_dset("t")[0]
+            if t1 != t2:
+                raise ComparisonError("t", t1, t2)
+        
+            # check that the array dimensions are the same
+            for axis in ['x1','x2','x3']:
+                c1 = f1.get_dset(axis)
+                c2 = f2.get_dset(axis)
+                if c1.size != c2.size:
+                    raise ComparisonError(axis, c1.size, c2.size)
+
+            # check that coordinates are the same
+            for axis in ['x1','x2','x3']:
+                c1 = f1.get_dset(axis)
+                c2 = f2.get_dset(axis)
+                try:
+                    assert_equality(c1,c2)
+                except DifferenceError as e:
+                    e.var = axis
+                    raise e
 
 
-        # check that coordinates are the same
-        for axis in ['x1','x2','x3']:
-            c1 = f1.get_dset(axis)
-            c2 = f2.get_dset(axis)
-            if close(c1,c2):
-                print("{} matches".format(axis))
+            # check that velocities are the same
+            for axis in ['v1','v2','v3']:
+                c1 = f1.get_dset(axis)
+                c2 = f2.get_dset(axis)
+                try:
+                    assert_near_equality(c1,c2)
+                except DifferenceError as e:
+
+                    e.var = axis
+
+                    if unforgiving:
+                        raise e
+                    else:
+                        print(nomatch_msg.format(axis))
+
+            # check that physical variables are the same
+            for axis in ["e","d"]:
+                c1 = f1.get_dset(axis)
+                c2 = f2.get_dset(axis)
+                try:
+                    assert_near_equality(c1,c2)
+                except DifferenceError as e:
+                    
+                    e.var = axis
+                        
+                    if unforgiving:
+                        raise e
+                    else:
+                        print(nomatch_msg.format(axis))
+
+                
+
+        except ComparisonError as CE:
+            msg_str = "  Cannot compare files: {:} differs [{:18.12E} != {:18.12E}]"
+            print(msg_str.format(CE.var, CE.value1, CE.value2))
+
+        except DifferenceError as DE:
+            if DE.var in ['x1','x2','x3']: # if coordinates differ
+                msg_str = "  Cannot compare files: {:} differs"
+                print(msg_str.format(DE.var))
             else:
-                print("{} does not match".format(axis))
+                msg_str = "  Files do not match: {:} differs"
+                print(msg_str.format(DE.var))
 
-        # check that velocities are the same
-        for axis in ['v1','v2','v3']:
-            c1 = f1.get_dset(axis)
-            c2 = f2.get_dset(axis)
-            if close(c1,c2):
-                print("{} matches".format(axis))
-            else:
-                diff  =  np.abs(c1-c2)
-                nz = diff.nonzero()
-                for (k,j,i) in zip(*nz):
-                    if not on_tile_boundary(i,j,k):
-                        print(err_fmt.format(axis,i,j,k, diff[k,j,i]/ (c1[k,j,i] + c1[k,j,i])))
-
-        # check that physical variables are the same
-        for axis in ["e","d"]:
-            c1 = f1.get_dset(axis)
-            c2 = f2.get_dset(axis)
-            if close(c1,c2):
-                print("{} matches".format(axis))
-            else:
-                diff  =  np.abs(c1-c2)
-                nz = diff.nonzero()
-                for (k,j,i) in zip(*nz):
-                    print(err_fmt.format(axis,i,j,k, diff[k,j,i]))
+        finally:
+            f1.close()
+            f2.close()
 
     return
 
@@ -103,6 +170,9 @@ class ZeusMPHDF5:
     def get_dset(self, name):
         return self.file[datanames[name]][:]
 
+    def close(self):
+        self.file.close()
+
 
 class ZeusMPOutput:
 
@@ -112,3 +182,5 @@ class ZeusMPOutput:
 
 
 
+if __name__ == "__main__":
+    pass
