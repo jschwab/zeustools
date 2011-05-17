@@ -1,5 +1,6 @@
 import glob
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -7,9 +8,12 @@ import sys
 
 class ZeusMP:
 
-    def __init__(self, rootdir = "./"):
+    def __init__(self, rootdir = "./", makefile = "Makefile", mpiexec = "mpirun"):
         self.zeusdir = rootdir
         self.exedir = "exe90"
+        self.srcdir = "src90"
+        self.makefile = makefile
+        self.mpiexec = mpiexec
 
     def run(self, nproc = 1):
         """Run ZEUS-MP2 and post-process the output"""
@@ -18,7 +22,7 @@ class ZeusMP:
 
         try:
             zmp_exe = os.path.join(self.zeusdir, self.exedir,"zeusmp.x")
-            zmp = shlex.split("openmpirun -n {} {}".format(nproc, zmp_exe))
+            zmp = shlex.split("{} -n {} {}".format(self.mpiexec, nproc, zmp_exe))
 
             subprocess.check_call(zmp, stdout = fstdout,
                                   cwd = os.path.join(self.zeusdir, self.exedir))
@@ -44,9 +48,41 @@ class ZeusMP:
 
         return 
 
+    def clean(self):
+        """Run make clean"""
+
+        make_clean = "make -f {} clean".format(self.makefile)
+        subprocess.check_call(shlex.split(make_clean), stdout = subprocess.PIPE,
+                              cwd = os.path.join(self.zeusdir, self.srcdir))
+
+        return
+
+    def newprob(self, probname):
+        """Run make newprob and set DPROBLEM=probname"""
+
+        make_newprob = "make -f {} newprob".format(self.makefile)
+        subprocess.check_call(shlex.split(make_newprob), stdout = subprocess.PIPE,
+                              cwd = os.path.join(self.zeusdir, self.srcdir))
+        
+        # read in the makefile
+        with open(os.path.join(self.zeusdir, self.srcdir, self.makefile), "r") as mf:
+            lines = mf.readlines()
+
+        # write it back out
+        with open(os.path.join(self.zeusdir, self.srcdir, self.makefile), "w") as mf:
+            for line in lines:
+                mf.write(re.sub("DPROBLEM=\w*","DPROBLEM={}".format(probname),line))
+
+
+
     def compile(self, newprob = False):
         """ Recompile ZEUS-MP2"""
-        pass
+
+        make_all = "make -f {} all".format(self.makefile)
+        subprocess.check_call(shlex.split(make_all), stdout = subprocess.PIPE,
+                              cwd = os.path.join(self.zeusdir, self.srcdir))
+
+        return
 
 
     def archive(self, target_dir):
@@ -77,3 +113,8 @@ class ZeusMP:
 
         return
 
+
+if __name__ == "__main__":
+    z = ZeusMP("/Users/jschwab/Research/Software/zeusmp2", makefile = "Makefile.laptop", mpiexec = "openmpirun")
+    z.newprob("blast")
+    z.compile()
