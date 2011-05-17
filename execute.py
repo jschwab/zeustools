@@ -82,6 +82,8 @@ class ZeusMP:
     def compile(self, newprob = False):
         """ Recompile ZEUS-MP2"""
 
+        print("Compiling ZEUS-MP2 ...")
+
         make_all = "make -f {} all".format(self.makefile)
         subprocess.check_call(shlex.split(make_all), stdout = subprocess.PIPE,
                               cwd = self.fullsrcdir)
