@@ -164,6 +164,7 @@ class ZeusMPOutput:
     def __init__(self, datadir = "./"):
         self.datadir = datadir
         self.files = glob.glob(os.path.join(datadir, "hdfaa.*"))
+        self.files.sort()
 
 
 
