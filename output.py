@@ -20,10 +20,6 @@ class DifferenceError(Error):
        self.diff = diff
        self.locs = locs
 
-
-
-
-
 # define map to the HDF5 datasets
 datanames = {"t" : "   time",
              "x1": "i coord",
@@ -37,21 +33,6 @@ datanames = {"t" : "   time",
              "T":  "temperature"}
 
 err_fmt = "{:2s} does not match at ({:4d},{:4d},{:4d})  |  diff = {:18.12E}"
-
-# define a norm function
-
-def array_compare(array1, array2):
-    ac = {}
-    adiff = abs(array1 - array2)
-    ac['max'] = adiff.max()
-    ac['avg'] = adiff.mean()
-    return ac
-
-def compare_one():
-    pass
-
-def on_tile_boundary(i,j,k):
-    return (i == 63) or (j == 43)
 
 def assert_near_equality(a,b):
 
