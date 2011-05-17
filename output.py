@@ -20,6 +20,11 @@ class DifferenceError(Error):
        self.diff = diff
        self.locs = locs
 
+   def showall(self):
+       diff_fmt = "    Does not match at ({:4d},{:4d},{:4d})  |  diff = {:18.12E}"
+       for (k,j,i) in  zip(*self.locs):
+           print(diff_fmt.format(i,j,k,self.diff[k,j,i]))
+
 # define map to the HDF5 datasets
 datanames = {"t" : "   time",
              "x1": "i coord",
@@ -32,8 +37,6 @@ datanames = {"t" : "   time",
              "d":  "gas density",
              "T":  "temperature"}
 
-err_fmt = "{:2s} does not match at ({:4d},{:4d},{:4d})  |  diff = {:18.12E}"
-
 def assert_near_equality(a,b):
 
     t1 = np.allclose(a,b,rtol = 1e-9, atol = 0)
@@ -42,7 +45,7 @@ def assert_near_equality(a,b):
     if not (t1 and t2):
         diff  =  np.abs(a-b)
         locs = diff.nonzero()
-        raise DifferenceError(None, diff[locs], locs)
+        raise DifferenceError(None, diff, locs)
         
     return
 
@@ -51,11 +54,11 @@ def assert_equality(a,b):
     if not np.array_equal(a,b):
         diff  =  np.abs(a-b)
         locs = diff.nonzero()
-        raise DifferenceError(None, diff[locs], locs)
+        raise DifferenceError(None, diff, locs)
         
     return
                     
-def compare_two(output1, output2, unforgiving = True):
+def compare_two(output1, output2, unforgiving = True, verbose = True):
 
     nomatch_msg = "  Files do not match: {:} differs"
 
@@ -106,6 +109,7 @@ def compare_two(output1, output2, unforgiving = True):
                         raise e
                     else:
                         print(nomatch_msg.format(axis))
+                        e.showall()
 
             # check that physical variables are the same
             for axis in ["e","d"]:
@@ -121,7 +125,7 @@ def compare_two(output1, output2, unforgiving = True):
                         raise e
                     else:
                         print(nomatch_msg.format(axis))
-
+                        e.showall()
                 
 
         except ComparisonError as CE:
@@ -135,7 +139,7 @@ def compare_two(output1, output2, unforgiving = True):
             else:
                 msg_str = "  Files do not match: {:} differs"
                 print(msg_str.format(DE.var))
-
+                if verbose: DE.showall()
         finally:
             f1.close()
             f2.close()
