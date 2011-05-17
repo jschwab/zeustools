@@ -60,8 +60,6 @@ def assert_equality(a,b):
                     
 def compare_two(output1, output2, unforgiving = True, verbose = True):
 
-    nomatch_msg = "  Files do not match: {:} differs"
-
     for (file1, file2) in zip(output1.files, output2.files):
         
         print("Comparing {} with {}".format(file1, file2))
@@ -101,15 +99,15 @@ def compare_two(output1, output2, unforgiving = True, verbose = True):
                 c2 = f2.get_dset(axis)
                 try:
                     assert_near_equality(c1,c2)
-                except DifferenceError as e:
-
-                    e.var = axis
+                except DifferenceError as DE:
+                    DE.var = axis
 
                     if unforgiving:
-                        raise e
+                        raise DE
                     else:
-                        print(nomatch_msg.format(axis))
-                        e.showall()
+                        msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
+                        print(msg_str.format(DE.var, DE.diff.max()))
+                        if verbose: DE.showall()
 
             # check that physical variables are the same
             for axis in ["e","d"]:
@@ -117,15 +115,15 @@ def compare_two(output1, output2, unforgiving = True, verbose = True):
                 c2 = f2.get_dset(axis)
                 try:
                     assert_near_equality(c1,c2)
-                except DifferenceError as e:
-                    
-                    e.var = axis
+                except DifferenceError as DE:
+                    DE.var = axis
                         
                     if unforgiving:
-                        raise e
+                        raise DE
                     else:
-                        print(nomatch_msg.format(axis))
-                        e.showall()
+                        msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
+                        print(msg_str.format(DE.var, DE.diff.max()))
+                        if verbose: DE.showall()
                 
 
         except ComparisonError as CE:
@@ -137,9 +135,10 @@ def compare_two(output1, output2, unforgiving = True, verbose = True):
                 msg_str = "  Cannot compare files: {:} differs"
                 print(msg_str.format(DE.var))
             else:
-                msg_str = "  Files do not match: {:} differs"
-                print(msg_str.format(DE.var))
+                msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
+                print(msg_str.format(DE.var, DE.diff.max()))
                 if verbose: DE.showall()
+
         finally:
             f1.close()
             f2.close()
