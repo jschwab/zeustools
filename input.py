@@ -2,6 +2,7 @@ from collections import OrderedDict
 import os
 
 class ZeusMPInput:
+    """Write and manipulate zmp_inp files"""
 
 ### BEGIN ZEUS-MP2 NAMELIST TEMPLATE ###
 ### see http://lca.ucsd.edu/portal/codes/zeusmp2/configuring for explanation of the parameters ###
