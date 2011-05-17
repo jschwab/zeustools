@@ -85,7 +85,9 @@ class ZeusMP:
         print("Compiling ZEUS-MP2 ...")
 
         make_all = "make -f {} all".format(self.makefile)
-        subprocess.check_call(shlex.split(make_all), stdout = subprocess.PIPE,
+        subprocess.check_call(shlex.split(make_all), 
+                              stdout = subprocess.PIPE,
+                              stderr = subprocess.PIPE,
                               cwd = self.fullsrcdir)
 
         return
