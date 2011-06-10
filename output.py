@@ -3,6 +3,31 @@ import h5py
 import numpy as np
 import os
 
+
+# define map to the HDF5 datasets
+datanames = {"t" : "   time",
+             "x1": "i coord",
+             "x2": "j coord",
+             "x3": "k coord",
+             "dv1":"ivolume",
+             "dv2":"jvolume",
+             "dv3":"kvolume",
+             "v1": " i velocity", 
+             "v2": " j velocity", 
+             "v3": " k velocity", 
+             "e":  " gas energy",
+             "d":  "gas density",
+             "T":  "temperature",
+             "cs2":"soundspeed2",
+             "gp" :"g potential"}
+
+
+class ZeusFile(h5py.File):
+
+    def get_dset(self, name):
+        return self[datanames[name]][:]
+
+
 class Error(Exception):
     pass
 
@@ -20,29 +45,18 @@ class DifferenceError(Error):
        self.diff = diff
        self.locs = locs
 
-   def showall(self):
+   def showall(self, iskip = (), jskip = (), kskip = () ):
        diff_fmt = "    Does not match at ({:4d},{:4d},{:4d})  |  diff = {:18.12E}"
        for (k,j,i) in  zip(*self.locs):
-           print(diff_fmt.format(i,j,k,self.diff[k,j,i]))
+           if not ((i in iskip) or (j in jskip) or (k in kskip)):
+               print(diff_fmt.format(i,j,k,self.diff[k,j,i]))
 
-# define map to the HDF5 datasets
-datanames = {"t" : "   time",
-             "x1": "i coord",
-             "x2": "j coord",
-             "x3": "k coord",
-             "v1": " i velocity", 
-             "v2": " j velocity", 
-             "v3": " k velocity", 
-             "e":  " gas energy",
-             "d":  "gas density",
-             "T":  "temperature"}
+def assert_near_equality(a,b, rtol = 1e-15, atol = 0):
 
-def assert_near_equality(a,b):
-
-    t1 = np.allclose(a,b,rtol = 1e-9, atol = 0)
-    t2 = np.allclose(b,a,rtol = 1e-9, atol = 0)
+    c1 = np.allclose(a,b,rtol = rtol, atol = atol)
+    c2 = np.allclose(b,a,rtol = rtol, atol = atol)
     
-    if not (t1 and t2):
+    if not (c1 and c2):
         diff  =  np.abs(a-b)
         locs = diff.nonzero()
         raise DifferenceError(None, diff, locs)
@@ -64,8 +78,8 @@ def compare_two(output1, output2, unforgiving = True, verbose = True):
         
         print("Comparing {} with {}".format(file1, file2))
 
-        f1 = ZeusMPHDF5(file1) 
-        f2 = ZeusMPHDF5(file2) 
+        f1 = ZeusFile(file1) 
+        f2 = ZeusFile(file2) 
 
         try: # try to compare the files
 
@@ -145,17 +159,6 @@ def compare_two(output1, output2, unforgiving = True, verbose = True):
 
     return
 
-class ZeusMPHDF5:
-
-    def __init__(self, filename):
-        self.filename = filename
-        self.file = h5py.File(filename)
-             
-    def get_dset(self, name):
-        return self.file[datanames[name]][:]
-
-    def close(self):
-        self.file.close()
 
 
 class ZeusMPOutput:
