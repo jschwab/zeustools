@@ -5,28 +5,43 @@ import os
 
 
 # define map to the HDF5 datasets
-datanames = {"t" : "   time",
-             "x1": "i coord",
-             "x2": "j coord",
-             "x3": "k coord",
-             "dv1":"ivolume",
-             "dv2":"jvolume",
-             "dv3":"kvolume",
-             "v1": " i velocity", 
-             "v2": " j velocity", 
-             "v3": " k velocity", 
-             "e":  " gas energy",
-             "d":  "gas density",
-             "T":  "temperature",
-             "cs2":"soundspeed2",
-             "gp" :"g potential"}
+dset_aliases = {"t" : "   time",
+                "x1": "i coord",
+                "x2": "j coord",
+                "x3": "k coord",
+                "dV1":"ivolume",
+                "dV2":"jvolume",
+                "dV3":"kvolume",
+                "v1": " i velocity", 
+                "v2": " j velocity", 
+                "v3": " k velocity", 
+                "e":  " gas energy",
+                "d":  "gas density",
+                "T":  "temperature",
+                "cs2":"soundspeed2",
+                "gp" :"g potential"}
 
 
 class ZeusFile(h5py.File):
 
     def get_dset(self, name):
-        return self[datanames[name]][:]
+        return self[dset_aliases[name]][:]
 
+class ZeusData:
+    
+    def __init__(self, filename):
+        with ZeusFile(filename) as zf:
+            for alias in dset_aliases.keys():
+                try:
+                    setattr(self, alias, zf.get_dset(sn))
+                except:
+                    setattr(self, alias, None)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, etype,evalue, tb):
+        pass
 
 class Error(Exception):
     pass
@@ -72,31 +87,29 @@ def assert_equality(a,b):
         
     return
                     
-def compare_two(output1, output2, unforgiving = True, verbose = True):
+def compare_two(file1, file2, unforgiving = True, verbose = True):
 
-    for (file1, file2) in zip(output1.files, output2.files):
-        
-        print("Comparing {} with {}".format(file1, file2))
+    print("Comparing {} with {}".format(file1, file2))
 
-        f1 = ZeusFile(file1) 
-        f2 = ZeusFile(file2) 
+    f1 = ZeusFile(file1) 
+    f2 = ZeusFile(file2) 
 
-        try: # try to compare the files
+    try: # try to compare the files
 
-            # check that time stamps are the same
-            t1 = f1.get_dset("t")[0]
-            t2 = f2.get_dset("t")[0]
-            if t1 != t2:
-                raise ComparisonError("t", t1, t2)
-        
-            # check that the array dimensions are the same
-            for axis in ['x1','x2','x3']:
-                c1 = f1.get_dset(axis)
-                c2 = f2.get_dset(axis)
-                if c1.size != c2.size:
-                    raise ComparisonError(axis, c1.size, c2.size)
+        # check that time stamps are the same
+        t1 = f1.get_dset("t")[0]
+        t2 = f2.get_dset("t")[0]
+        if t1 != t2:
+            raise ComparisonError("t", t1, t2)
 
-            # check that coordinates are the same
+        # check that the array dimensions are the same
+        for axis in ['x1','x2','x3']:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            if c1.size != c2.size:
+                raise ComparisonError(axis, c1.size, c2.size)
+
+        # check that coordinates are the same
             for axis in ['x1','x2','x3']:
                 c1 = f1.get_dset(axis)
                 c2 = f2.get_dset(axis)
@@ -140,26 +153,31 @@ def compare_two(output1, output2, unforgiving = True, verbose = True):
                         if verbose: DE.showall()
                 
 
-        except ComparisonError as CE:
-            msg_str = "  Cannot compare files: {:} differs [{:18.12E} != {:18.12E}]"
-            print(msg_str.format(CE.var, CE.value1, CE.value2))
+    except ComparisonError as CE:
+        msg_str = "  Cannot compare files: {:} differs [{:18.12E} != {:18.12E}]"
+        print(msg_str.format(CE.var, CE.value1, CE.value2))
 
-        except DifferenceError as DE:
-            if DE.var in ['x1','x2','x3']: # if coordinates differ
-                msg_str = "  Cannot compare files: {:} differs"
-                print(msg_str.format(DE.var))
-            else:
-                msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
-                print(msg_str.format(DE.var, DE.diff.max()))
-                if verbose: DE.showall()
+    except DifferenceError as DE:
+        if DE.var in ['x1','x2','x3']: # if coordinates differ
+            msg_str = "  Cannot compare files: {:} differs"
+            print(msg_str.format(DE.var))
+        else:
+            msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
+            print(msg_str.format(DE.var, DE.diff.max()))
+            if verbose: DE.showall()
 
-        finally:
-            f1.close()
-            f2.close()
+    finally:
+        f1.close()
+        f2.close()
 
     return
 
+def compare_output(output1, output2, unforgiving = True, verbose = True):
+    
+    for file1, file2 in zip(output1.files, output2.files):
+        compare_two(file1,file2, unforgiving, verbose)
 
+    return
 
 class ZeusMPOutput:
 
