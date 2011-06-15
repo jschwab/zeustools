@@ -110,47 +110,47 @@ def compare_two(file1, file2, unforgiving = True, verbose = True):
                 raise ComparisonError(axis, c1.size, c2.size)
 
         # check that coordinates are the same
-            for axis in ['x1','x2','x3']:
-                c1 = f1.get_dset(axis)
-                c2 = f2.get_dset(axis)
-                try:
-                    assert_equality(c1,c2)
-                except DifferenceError as e:
-                    e.var = axis
-                    raise e
+        for axis in ['x1','x2','x3']:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            try:
+                assert_equality(c1,c2)
+            except DifferenceError as e:
+                e.var = axis
+                raise e
 
 
-            # check that velocities are the same
-            for axis in ['v1','v2','v3']:
-                c1 = f1.get_dset(axis)
-                c2 = f2.get_dset(axis)
-                try:
-                    assert_near_equality(c1,c2)
-                except DifferenceError as DE:
-                    DE.var = axis
+        # check that velocities are the same
+        for axis in ['v1','v2','v3']:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            try:
+                assert_near_equality(c1,c2)
+            except DifferenceError as DE:
+                DE.var = axis
 
-                    if unforgiving:
-                        raise DE
-                    else:
-                        msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
-                        print(msg_str.format(DE.var, DE.diff.max()))
-                        if verbose: DE.showall()
+                if unforgiving:
+                    raise DE
+                else:
+                    msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
+                    print(msg_str.format(DE.var, DE.diff.max()))
+                    if verbose: DE.showall()
 
-            # check that physical variables are the same
-            for axis in ["e","d"]:
-                c1 = f1.get_dset(axis)
-                c2 = f2.get_dset(axis)
-                try:
-                    assert_near_equality(c1,c2)
-                except DifferenceError as DE:
-                    DE.var = axis
-                        
-                    if unforgiving:
-                        raise DE
-                    else:
-                        msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
-                        print(msg_str.format(DE.var, DE.diff.max()))
-                        if verbose: DE.showall()
+        # check that physical variables are the same
+        for axis in ["e","d"]:
+            c1 = f1.get_dset(axis)
+            c2 = f2.get_dset(axis)
+            try:
+                assert_near_equality(c1,c2)
+            except DifferenceError as DE:
+                DE.var = axis
+
+                if unforgiving:
+                    raise DE
+                else:
+                    msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
+                    print(msg_str.format(DE.var, DE.diff.max()))
+                    if verbose: DE.showall()
                 
 
     except ComparisonError as CE:
