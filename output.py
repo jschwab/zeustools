@@ -33,7 +33,7 @@ class ZeusData:
         with ZeusFile(filename) as zf:
             for alias in dset_aliases.keys():
                 try:
-                    setattr(self, alias, zf.get_dset(sn))
+                    setattr(self, alias, zf.get_dset(alias))
                 except:
                     setattr(self, alias, None)
 
