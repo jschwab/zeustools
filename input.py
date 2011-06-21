@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import copy
 import os
 
 class ZeusMPInput:
@@ -7,7 +8,7 @@ class ZeusMPInput:
 ### BEGIN ZEUS-MP2 NAMELIST TEMPLATE ###
 ### see http://lca.ucsd.edu/portal/codes/zeusmp2/configuring for explanation of the parameters ###
 
-    _namelists = OrderedDict([
+    _namelists_default = OrderedDict([
 
     ("geomconf" , OrderedDict([
          ("lgeom"  ,  1),
@@ -233,7 +234,7 @@ class ZeusMPInput:
 
 
     def __init__(self):
-        pass
+        self._namelists = copy.deepcopy(self._namelists_default)
 
     def set_value(self, namelist, option, value):
         try:
