@@ -94,9 +94,10 @@ class ZeusTile:
 
     def _compute_cartesian_grids(self):
         
-        phi_grid = RatioedGrid(npts = 32, xmin = 0, xmax = 2*np.pi, xrat = 1).bgrid()
-
-        self.vl3 = 2.0 * np.pi / 32.0
+        nphi = 2
+        phi_grid = RatioedGrid(npts = nphi, xmin = 0, xmax = 2*np.pi, xrat = 1).bgrid()
+        self.nk = nphi
+        self.vl3 = 2.0 * np.pi / nphi
 
         # define things on bb grid
 
@@ -109,7 +110,8 @@ class ZeusTile:
                     * np.sin(phi_grid[None,None,:]))
 
         self.zbb = (self.x1b[:,None,None] 
-                    * np.cos(self.x2b[None,:,None]))
+                    * np.cos(self.x2b[None,:,None])
+                    * np.ones(nphi)[None,None,:])
 
         # define things on ab grid
 
@@ -122,7 +124,8 @@ class ZeusTile:
                     * np.sin(phi_grid[None,None,:]))
 
         self.zab = (self.x1a[:,None,None] 
-                    * np.cos(self.x2b[None,:,None]))
+                    * np.cos(self.x2b[None,:,None])
+                    * np.ones(nphi)[None,None,:])
 
         # define things on ba grid
 
@@ -135,6 +138,7 @@ class ZeusTile:
                     * np.sin(phi_grid[None,None,:]))
 
         self.zba = (self.x1b[:,None,None] 
-                    * np.cos(self.x2a[None,:,None]))
+                    * np.cos(self.x2a[None,:,None])
+                    * np.ones(nphi)[None,None,:])
 
         return
