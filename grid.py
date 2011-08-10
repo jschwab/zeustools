@@ -99,7 +99,7 @@ class ZeusTile:
         self.nk = nphi
         self.vl3 = 2.0 * np.pi / nphi
 
-        # define things on bb grid
+        # define things on bbb grid
 
         self.xbb = (self.x1b[:,None,None] 
                     * np.sin(self.x2b[None,:,None]) 
