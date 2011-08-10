@@ -99,22 +99,29 @@ class ZeusMP:
             return os.rename(os.path.join(self.zeusdir,self.exedir,filename), 
                              os.path.join(target_dir, filename))
 
-
-
         try:
             os.mkdir(target_dir)
         except OSError:
             shutil.rmtree(target_dir)
             os.mkdir(target_dir)
 
+        # archive HDF5 format vizdumps
         hdf_files = glob.glob(os.path.join(self.fullexedir, "hdfaa.*"))
         for hdf_file in hdf_files:
             hdf_filename = os.path.split(hdf_file)[1]
             archive_file(hdf_filename, target_dir)
-                
+
+        # archive restart files
+        res_files = glob.glob(os.path.join(self.fullexedir, "resaa*"))
+        for res_file in res_files:
+            res_filename = os.path.split(res_file)[1]
+            archive_file(res_filename, target_dir)
+
+        # zeus input and output
         for filename in ["zmp_log", "zmp_inp", "zmp.stdout"]:
             archive_file(filename, target_dir)
 
+        # remove the unglued HDF5 tiles
         pre_files = glob.glob(os.path.join(self.fullexedir,"hdfaa*.*"))
         for pre_file in pre_files:
             os.remove(pre_file)
