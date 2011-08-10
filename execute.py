@@ -48,7 +48,7 @@ class ZeusMP:
             pass
         
         nfiles = len(glob.glob(os.path.join(self.fullexedir, "hdfaa000000.*"))) - 1
-        pp.communicate(input="auto_h5\n0\n{}\nquit\n".format(nfiles))
+        pp.communicate(input="0\n{}\n".format(nfiles))
 
         return 
 
