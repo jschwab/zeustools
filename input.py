@@ -56,10 +56,11 @@ class ZeusMPInput:
     ("rescon"     , OrderedDict([
          ("irestart"   , 0),
          ("resfile"    , None),
-                                ])),
+         ("tdump"   , 0.0),
+         ("dtdump"   , 1.0)      ])),
 
     ("pcon"     , OrderedDict([
-         ("nlim",   100000), 
+         ("nlim",   1000000), 
          ("tlim",   0.0   ), 
          ("cpulim", 100000.0), 
          ("mbatch", 1)         ])),
