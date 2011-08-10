@@ -315,12 +315,12 @@ class ZeusMPInput:
         """
 
         # set the appropriate boundary flags
-        if iis!=None: self.set_value("iib" , "niis(1)" , iis)
-        if ois!=None: self.set_value("oib" , "nois(1)" , ois)
-        if ijs!=None: self.set_value("ijb" , "nijs(1)" , ijs)
-        if ojs!=None: self.set_value("ojb" , "nojs(1)" , ojs)
-        if iks!=None: self.set_value("ikb" , "niks(1)" , iks)
-        if oks!=None: self.set_value("okb" , "noks(1)" , oks)
+        if iis is not None: self.set_value("iib" , "niis(1)" , iis)
+        if ois is not None: self.set_value("oib" , "nois(1)" , ois)
+        if ijs is not None: self.set_value("ijb" , "nijs(1)" , ijs)
+        if ojs is not None: self.set_value("ojb" , "nojs(1)" , ojs)
+        if iks is not None: self.set_value("ikb" , "niks(1)" , iks)
+        if oks is not None: self.set_value("okb" , "noks(1)" , oks)
         
         # ensure that the appropriate MPI periodicities are set
         if ( (iis == 4) or (ois == 4) ):
@@ -355,12 +355,12 @@ class ZeusMPInput:
         """
 
         # set the appropriate boundary flags
-        if iis!=None: self.set_value("iib" , "niis(3)" , iis)
-        if ois!=None: self.set_value("oib" , "nois(3)" , ois)
-        if ijs!=None: self.set_value("ijb" , "nijs(3)" , ijs)
-        if ojs!=None: self.set_value("ojb" , "nojs(3)" , ojs)
-        if iks!=None: self.set_value("ikb" , "niks(3)" , iks)
-        if oks!=None: self.set_value("okb" , "noks(3)" , oks)
+        if iis is not None: self.set_value("iib" , "niis(3)" , iis)
+        if ois is not None: self.set_value("oib" , "nois(3)" , ois)
+        if ijs is not None: self.set_value("ijb" , "nijs(3)" , ijs)
+        if ojs is not None: self.set_value("ojb" , "nojs(3)" , ojs)
+        if iks is not None: self.set_value("ikb" , "niks(3)" , iks)
+        if oks is not None: self.set_value("okb" , "noks(3)" , oks)
 
         return
 
@@ -373,8 +373,8 @@ class ZeusMPInput:
         return
 
     def set_grvcon(self, guniv = None, ptmass = None, xptm = (0.0, 0.0, 0.0)):
-        if guniv!=None: self.set_value("grvcon", "guniv", guniv)
-        if ptmass!=None:
+        if guniv is not None: self.set_value("grvcon", "guniv", guniv)
+        if ptmass is not None:
             self.set_value("grvcon", "ptmass", ptmass)
             self.set_value("grvcon", "x1ptm", xptm[0])
             self.set_value("grvcon", "x2ptm", xptm[1])
@@ -441,7 +441,7 @@ class ZeusMPInput:
                     for grid in optdict:
                         opt_lines = []
                         for option, value in grid.iteritems():
-                            if value != None:
+                            if value is not None:
                                 opt_lines.append(opt_fmt.format(option, _fmt_value(value)))
 
                         zmpfile.write(nml_fmt.format(namelist, ",\n".join(opt_lines)))
@@ -450,7 +450,7 @@ class ZeusMPInput:
 
                     opt_lines = []
                     for option, value in optdict.iteritems():
-                        if value != None:
+                        if value is not None:
                             opt_lines.append(opt_fmt.format(option, _fmt_value(value)))
 
 
