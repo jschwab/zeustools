@@ -405,6 +405,11 @@ class ZeusMPInput:
 
         return
 
+    def del_grid(self, axis):
+        s_axis = "ggen{}".format(axis)
+        self._namelists[s_axis] = []
+
+        return
 
     def set_pgen(self, pdict):
         for k, v in pdict.iteritems():
