@@ -87,7 +87,7 @@ def assert_equality(a,b):
         
     return
                     
-def compare_two(file1, file2, unforgiving = True, verbose = True):
+def compare_two(file1, file2, unforgiving = True, verbose = True, force = False):
 
     print("Comparing {} with {}".format(file1, file2))
 
@@ -99,7 +99,7 @@ def compare_two(file1, file2, unforgiving = True, verbose = True):
         # check that time stamps are the same
         t1 = f1.get_dset("t")[0]
         t2 = f2.get_dset("t")[0]
-        if t1 != t2:
+        if t1 != t2 and not force:
             raise ComparisonError("t", t1, t2)
 
         # check that the array dimensions are the same
@@ -172,10 +172,11 @@ def compare_two(file1, file2, unforgiving = True, verbose = True):
 
     return
 
-def compare_output(output1, output2, unforgiving = True, verbose = True):
+def compare_output(output1, output2, 
+                   unforgiving = True, verbose = True, force = False):
     
     for file1, file2 in zip(output1.files, output2.files):
-        compare_two(file1,file2, unforgiving, verbose)
+        compare_two(file1,file2, unforgiving, verbose, force)
 
     return
 
