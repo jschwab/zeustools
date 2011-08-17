@@ -55,16 +55,18 @@ class ComparisonError(Error):
 
 class DifferenceError(Error):
 
-   def __init__(self, var, diff, locs):
+   def __init__(self, var, rerr, aerr, locs):
        self.var = var
-       self.diff = diff
+       self.rerr = rerr
+       self.aerr = aerr
        self.locs = locs
 
    def showall(self, iskip = (), jskip = (), kskip = () ):
-       diff_fmt = "    Does not match at ({:4d},{:4d},{:4d})  |  diff = {:18.12E}"
+       diff_fmt = "    Does not match at ({:4d},{:4d},{:4d})  |  diff = ({:8.2E}, {:8.2E})"
        for (k,j,i) in  zip(*self.locs):
            if not ((i in iskip) or (j in jskip) or (k in kskip)):
-               print(diff_fmt.format(i,j,k,self.diff[k,j,i]))
+               if self.rerr[k,j,i] > 1e-4: 
+                   print(diff_fmt.format(i,j,k,self.rerr[k,j,i],self.aerr[k,j,i]))
 
 def assert_near_equality(a,b, rtol = 1e-15, atol = 0):
 
@@ -72,22 +74,25 @@ def assert_near_equality(a,b, rtol = 1e-15, atol = 0):
     c2 = np.allclose(b,a,rtol = rtol, atol = atol)
     
     if not (c1 and c2):
-        diff  =  np.abs(a-b)
-        locs = diff.nonzero()
-        raise DifferenceError(None, diff, locs)
+        rerr  = np.abs(a-b) / np.abs(a+b) 
+        aerr  = np.abs(a-b)
+        locs = aerr.nonzero()
+        raise DifferenceError(None, rerr, aerr, locs)
         
     return
 
 def assert_equality(a,b):
 
     if not np.array_equal(a,b):
-        diff  =  np.abs(a-b)
-        locs = diff.nonzero()
-        raise DifferenceError(None, diff, locs)
+        rerr  = np.abs(a-b) / np.abs(a+b) 
+        aerr  = np.abs(a-b)
+        locs = aerr.nonzero()
+        raise DifferenceError(None, rerr, aerr, locs)
         
     return
                     
-def compare_two(file1, file2, unforgiving = True, verbose = True, force = False):
+def compare_two(file1, file2, rtol = 1e8, 
+                unforgiving = True, verbose = True, force = False):
 
     print("Comparing {} with {}".format(file1, file2))
 
@@ -125,7 +130,7 @@ def compare_two(file1, file2, unforgiving = True, verbose = True, force = False)
             c1 = f1.get_dset(axis)
             c2 = f2.get_dset(axis)
             try:
-                assert_near_equality(c1,c2)
+                assert_near_equality(c1,c2, rtol)
             except DifferenceError as DE:
                 DE.var = axis
 
@@ -133,15 +138,15 @@ def compare_two(file1, file2, unforgiving = True, verbose = True, force = False)
                     raise DE
                 else:
                     msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
-                    print(msg_str.format(DE.var, DE.diff.max()))
+                    print(msg_str.format(DE.var, DE.rerr.max()))
                     if verbose: DE.showall()
 
         # check that physical variables are the same
-        for axis in ["e","d"]:
+        for axis in ["e","d", "gp"]:
             c1 = f1.get_dset(axis)
             c2 = f2.get_dset(axis)
             try:
-                assert_near_equality(c1,c2)
+                assert_near_equality(c1,c2, rtol)
             except DifferenceError as DE:
                 DE.var = axis
 
@@ -149,7 +154,7 @@ def compare_two(file1, file2, unforgiving = True, verbose = True, force = False)
                     raise DE
                 else:
                     msg_str = "  Files do not match: {:} differs (max = {:8.2E}) "
-                    print(msg_str.format(DE.var, DE.diff.max()))
+                    print(msg_str.format(DE.var, DE.rerr.max()))
                     if verbose: DE.showall()
                 
 
@@ -172,11 +177,11 @@ def compare_two(file1, file2, unforgiving = True, verbose = True, force = False)
 
     return
 
-def compare_output(output1, output2, 
+def compare_output(output1, output2, rtol = 1e-8, 
                    unforgiving = True, verbose = True, force = False):
     
     for file1, file2 in zip(output1.files, output2.files):
-        compare_two(file1,file2, unforgiving, verbose, force)
+        compare_two(file1,file2, rtol, unforgiving, verbose, force)
 
     return
 
