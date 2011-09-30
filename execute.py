@@ -118,7 +118,7 @@ class ZeusMP:
             archive_file(res_filename, target_dir)
 
         # zeus input and output
-        for filename in ["zmp_log", "zmp_inp", "zmp.stdout"]:
+        for filename in ["zmp_log", "zmp_inp", "zmp.stdout", "debug.log"]:
             archive_file(filename, target_dir)
 
         # remove the unglued HDF5 tiles

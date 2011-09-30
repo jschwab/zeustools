@@ -55,17 +55,18 @@ class ComparisonError(Error):
 
 class DifferenceError(Error):
 
-   def __init__(self, var, rerr, aerr, locs):
+   def __init__(self, var, rerr, aerr, locs, rtol):
        self.var = var
        self.rerr = rerr
        self.aerr = aerr
        self.locs = locs
+       self.rtol = rtol
 
    def showall(self, iskip = (), jskip = (), kskip = () ):
        diff_fmt = "    Does not match at ({:4d},{:4d},{:4d})  |  diff = ({:8.2E}, {:8.2E})"
        for (k,j,i) in  zip(*self.locs):
            if not ((i in iskip) or (j in jskip) or (k in kskip)):
-               if self.rerr[k,j,i] > 1e-4: 
+               if self.rerr[k,j,i] > self.rtol: 
                    print(diff_fmt.format(i,j,k,self.rerr[k,j,i],self.aerr[k,j,i]))
 
 def assert_near_equality(a,b, rtol = 1e-15, atol = 0):
@@ -77,7 +78,7 @@ def assert_near_equality(a,b, rtol = 1e-15, atol = 0):
         rerr  = np.abs(a-b) / np.abs(a+b) 
         aerr  = np.abs(a-b)
         locs = aerr.nonzero()
-        raise DifferenceError(None, rerr, aerr, locs)
+        raise DifferenceError(None, rerr, aerr, locs, rtol)
         
     return
 
@@ -87,7 +88,7 @@ def assert_equality(a,b):
         rerr  = np.abs(a-b) / np.abs(a+b) 
         aerr  = np.abs(a-b)
         locs = aerr.nonzero()
-        raise DifferenceError(None, rerr, aerr, locs)
+        raise DifferenceError(None, rerr, aerr, locs, rtol)
         
     return
                     
