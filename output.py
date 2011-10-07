@@ -19,7 +19,10 @@ dset_aliases = {"t" : "   time",
                 "d":  "gas density",
                 "T":  "temperature",
                 "cs2":"soundspeed2",
-                "gp" :"g potential"}
+                "gp" :"g potential",
+                "A":  "aspec",
+                "Z":  "zspec",
+                "X":  "abun"}
 
 
 class ZeusFile(h5py.File):
