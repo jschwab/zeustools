@@ -111,7 +111,9 @@ def to_spherical(data):
     logdequator = np.log10(data.d[equator,   :])
     
     flogrpole = interp1d(logdpole,logr, bounds_error = False)
-    sdata.aspect = np.exp(np.log10(data.x1) - flogrpole(logdequator))
+    sdata.aspect = np.nan_to_num(np.exp(np.log10(data.x1) - flogrpole(logdequator)))
+
+    print(sdata.aspect)
         
     return sdata
 
@@ -119,7 +121,7 @@ def write_oned(oned, outfile):
     
     cols = (oned.r, oned.menc, 
             oned.d, oned.e, oned.T, oned.s, 
-            oned.j, oned.omega, oned.zbar, oned.abar, oned.X)
+            oned.j, oned.omega, oned.zbar, oned.abar, oned.aspect)
     np.savetxt(outfile, np.transpose(cols), fmt = '%10.3E ')
 
     return
