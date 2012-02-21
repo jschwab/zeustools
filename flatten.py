@@ -7,7 +7,29 @@ from scipy.interpolate import interp1d
 # define generic container to hold the averaged results
 
 class OneD:
-    pass
+
+    def __init__(self):
+        pass
+
+    def write(self, filename):
+               # collist = ("r","menc","d","e","T","s",
+               #            "j","omega","zbar","abar","aspect"):    
+        cols = (self.r, self.menc, 
+                self.d, self.e, self.T, self.s, 
+                self.j, self.omega, self.zbar, self.abar, 
+                self.aspect)
+
+
+        np.savetxt("{}.1D".format(filename), 
+                   np.transpose(cols), fmt = '%10.3E ')
+
+        np.savetxt("{}.1DX".format(filename), 
+                   np.transpose(self.X), fmt = '%10.3E ')
+
+
+
+
+
 
 # define average functions
 
@@ -112,12 +134,5 @@ def twod_to_oned(data):
     flogrpole = interp1d(logdpole,logr, bounds_error = False)
     sdata.aspect = np.nan_to_num(np.exp(np.log10(data.x1) - flogrpole(logdequator)))
     return sdata
-
-def write_oned(oned, outfile):
-    
-    cols = (oned.r, oned.menc, 
-            oned.d, oned.e, oned.T, oned.s, 
-            oned.j, oned.omega, oned.zbar, oned.abar, oned.aspect)
-    np.savetxt(outfile, np.transpose(cols), fmt = '%10.3E ')
 
     return
