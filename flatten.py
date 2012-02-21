@@ -2,7 +2,6 @@ import helmholtz
 import numpy as np
 from scipy.interpolate import interp1d
 
-
 # this module provides the ability to average a zeus run along a specified axis
 
 # define generic container to hold the averaged results
@@ -20,7 +19,7 @@ def Xweightedavg(field, weight):
     return (np.sum(field * weight,  axis = 1) / 
             np.sum(weight, axis = 0))
 
-def to_spherical(data):
+def twod_to_oned(data):
 
     sdata = OneD()
 
@@ -112,9 +111,6 @@ def to_spherical(data):
     
     flogrpole = interp1d(logdpole,logr, bounds_error = False)
     sdata.aspect = np.nan_to_num(np.exp(np.log10(data.x1) - flogrpole(logdequator)))
-
-    print(sdata.aspect)
-        
     return sdata
 
 def write_oned(oned, outfile):
