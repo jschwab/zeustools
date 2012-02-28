@@ -22,8 +22,9 @@ class OneD:
         np.savetxt("{}.1D".format(filename), 
                    np.transpose(cols), fmt = '%10.3E ')
 
-        np.savetxt("{}.1DX".format(filename), 
-                   np.transpose(self.X), fmt = '%10.3E ')
+        if hasattr(self,'X'):
+            np.savetxt("{}.1DX".format(filename), 
+                       np.transpose(self.X), fmt = '%10.3E ')
 
 
 # define average functions
