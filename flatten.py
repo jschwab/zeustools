@@ -6,6 +6,9 @@ from scipy.interpolate import interp1d
 
 # define generic container to hold the averaged results
 
+class Flat:
+    pass
+
 class OneD:
 
     def __init__(self):
@@ -118,6 +121,7 @@ def twod_to_oned(data):
     # put eos results
     sdata.T = H.temp
     sdata.s = H.stot
+    sdata.P = H.ptot
 
     # rotation data, taken from the equator
 
